@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dpt_main_style.css') }}">
+    <script type="text/javascript" src="{{ url_for('static', filename='dpt_main_script.js') }}"></script>
+    <title>Jeu des departements</title>
+</head>
+
+
+<body>
+
+
+    <div class="score-board-main-div">
+
+        <script>
+            let gameMode = "nom_departement-mode"
+            let rankingMode = "general-ranking"
+            let scoreBoardData = JSON.parse('{{ score_board_data | tojson }}')
+            let scoreBoardColumns = JSON.parse('{{ static_lists_dic["score_table_columns"].keys() | list | tojson }}')
+        </script>
+
+        <div class="score-board-settings-div" style="width: 600px; margin-left: auto; margin-right: auto;">
+
+
+            <!-- Title -->
+            <h1 style="text-align: center;">Tableau des scores</h1>
+
+
+            <!-- Select which game mode to look the score of -->
+
+            {% set fields_dict = static_lists_dic['dpt_fields_dic'] %}
+            <div class="tab" id="tabs-game-mode" style="margin-top: 20px;">
+                <p style="font-weight: bold;">Mode de jeu</p>
+                {% for dpt_field in static_lists_dic['dpt_fields_dic'].keys() %}
+                {% if dpt_field != 'nom_region' %}
+                <button class="tab-links{{ ' active' if dpt_field == 'nom_departement' }}" width="" onclick="selectGameMode(event, '{{ dpt_field }}-mode', scoreBoardColumns, scoreBoardData, gameMode, rankingMode)">{{
+                    fields_dict[dpt_field] }}</button>
+                <script>if ('{{ dpt_field }}' === 'nom_departement') {  }</script>
+                {% endif %}
+                {% endfor %}
+                <!-- dynamically set the width of scores divs based on number of elements -->
+                <script>
+                    let gameModeEltsArray = document.getElementById("tabs-game-mode").getElementsByClassName('tab-links')
+                    i = 0
+                    for (let gameModeElt of gameModeEltsArray) {
+                        gameModeElt.style.width = Math.floor(100 / gameModeEltsArray.length).toString() + "%"
+                        i += 1
+                    }
+                </script>
+            </div>
+
+
+            <!-- Select which score to rank by -->
+            <div class="tab" id="tabs-game-mode" style="margin-top: 25px;">
+                <p style="font-weight: bold; ">Choix du type de classement</p>
+                {% set general_dict = {'general': 'General'} %}
+                {% set rankings_dict = dict(fields_dict, **general_dict) %}
+                {% set rankings_list = ['general'] + fields_dict.keys()|list %}
+                <!-- Tab links -->
+                <div class="tab" id="tabs-ranking-mode">
+                    {% for ranking_field in rankings_list %}
+                    <button class="tab-links{{ ' active' if ranking_field == 'general' }}"
+                        onclick="selectRankingMode(event, '{{ ranking_field }}-ranking', scoreBoardColumns, scoreBoardData, gameMode, rankingMode)">{{
+                        rankings_dict[ranking_field] |
+                        replace('du département', '') }}</button>
+                    {% endfor %}
+                </div>
+                <!-- dynamically set the width of scores divs based on number of elements -->
+                <script>
+                    let rankingModeEltsArray = document.getElementById('tabs-ranking-mode').getElementsByClassName('tab-links')
+                    i = 0
+                    for (let rankingModeElt of rankingModeEltsArray) {
+                        rankingModeElt.style.width = Math.floor(100 / rankingModeEltsArray.length).toString() + '%'
+                        i += 1
+                    }
+                </script>
+            </div>
+        </div>
+
+        <!-- display table of scores -->
+        <div style="margin-top: 25px;">
+
+            <table id="table-scores">
+                <thead>
+                    <tr id="score-table-header-row">
+                        {% for col_name in static_lists_dic['score_table_columns'].keys()|list %}
+                        <th>{{static_lists_dic['score_table_columns'][col_name] }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody id="score-table-content"></tbody>
+            </table>
+
+            <script>
+                generateScoreTable(scoreBoardColumns, scoreBoardData, gameMode, rankingMode)
+            </script>
+
+
+
+
+
+            <!-- back to main menu button -->
+            {% set start_page_url = static_lists_dic['base_url'] %}
+            <input type="button" style="margin-top: 40px" id="btn-back" onclick="location.href='{{ start_page_url }}';"
+                value="Retour au menu" />
+
+        </div>
+    </div>
+
+
+</body>
+
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dpt_main_style.css') }}">
+  <title>Jeu des departements</title>
+</head>
+
+<body>
+  <div class="start-page-main-div">
+
+    <h1 style="text-align: center">Jeu des départements</h1>
+
+    <div class="start-page-top-form-div">
+
+      <h3 style="text-align: center; margin-top: 30px;">Commencer une partie</h2>
+
+        <!-- form to choose game mode (ie field asked) -->
+        <form action="{{ static_lists_dic['base_url'] }}/start_training" method="post">
+          <div style="display:flex; align-items: center; border: 1px solid darkgray; padding: 0px 25px 25px 0px; font: 14px Arial">
+            <div style="width:350px;">
+                <p style="font-weight: bold; margin-top: 15px">Mode de jeu</p>
+                {% for dpt_field in static_lists_dic['dpt_fields_dic'] %}
+                {% if dpt_field != 'nom_region' %}
+                <div>
+                  <input type="radio" id="{{ dpt_field }}" name="dpt-field-question" value="{{ dpt_field }}"
+                    {{ 'checked="checked"' if loop.index0==0 else '' }} />
+                  <label for="{{ dpt_field }}">{{ static_lists_dic['dpt_fields_dic'][dpt_field] }}</label>
+                </div>
+                {% endif %}
+                {% endfor %}
+
+                <p style="font-weight: bold; margin-top: 25px">Pseudo</p>
+                <input type="text" style="width: 65%" id="player-name" name="player-name" placeholder="Pour enregistrer ton score" required>
+            </div>
+
+            <div style="flex: 1; margin-left: 15px; vertical-align: baseline;">
+
+              <p style="font-weight: bold;">Region</p>
+              <select style="width: 180px; padding: 5px" id="selected-region" name="selected-region" title="Restreins le jeu à une unique région si tu souhaites t'entraîner." required>
+                <option value="Toutes les régions">Toutes les régions</option>
+                {% for nom_region in static_lists_dic['nom_region'] %}
+                <option value="{{ nom_region }}">{{ nom_region }}</option>
+                {% endfor %}
+              </select>
+              
+              <div class="submit_box" style="margin-top: 40px;">
+                <input type="submit" class="submit_input" value="Commencer">
+              </div>
+
+            </div>
+
+          </div>
+        </form>
+
+        <h3 style="text-align: center; margin-top: 35px;">Classement des meilleurs scores</h2>
+          {% set score_board_url = static_lists_dic['base_url'] + '/score_board' %}
+          <input type="button" id="btn-score-board" onclick="location.href='{{ score_board_url }}';" style="font-size: 16px;"
+            value="Consulter le tableau" />
+
+    </div>
+
+    <!-- display game database of all departements -->
+    <div class="start-page-dpt-list-div">
+
+      <h3 style="text-align: center; margin-top: 35px;">Liste des departements francais</h2>
+
+        <table id="table-dpt-list" border="1">
+          <thead>
+            <tr style="text-align: center;">
+              {% for col_name in df_dpts.columns %}
+              <th>{{ static_lists_dic['dpt_fields_dic'][col_name] }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in df_dpts.values %}
+            <tr style="text-align: center;">
+              {% for cell_content in row %}
+              <td>{{cell_content}}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+
+          </tbody>
+        </table>
+    </div>
+
+
+  </div>
+
+</body>
+
+</html>

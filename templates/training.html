@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dpt_main_style.css') }}">
+  <script type="text/javascript" src="{{ url_for('static', filename='dpt_main_script.js') }}"></script>
+  <title>Jeu des departements</title>
+</head>
+
+<body>
+
+
+  <div class="training-main-div">
+
+    <!-- Title and sub-title -->
+    <div style="text-align: center;">
+      <h1>Session d'entrainement</h1>
+      <h3>Révise tes départements!</h3>
+    </div>
+
+
+    <div class="training-content-div">
+
+      <!-- Game score -->
+      <div class="score-div">
+
+        <div style="text-align: center; font-weight: bold;">Scores de la partie en cours</div>
+        <div id="remaining-questions" style="text-align: center; margin-top: 3px">
+          Tours restants:
+          <span id="remaining-questions-value">{{ updated_data_for_ui['remaining_questions'] }}</span>
+        </div>
+        <div id="elapsed-time" style="text-align: center; margin-top: 3px">
+          Temps écoulé:
+          <span id="elapsed-time-value"></span>
+          <script>displayElapsedTime(document.getElementById('elapsed-time-value'), '{{ updated_data_for_ui["training_start_time"] }}')</script>
+        </div>
+        <!-- each field score has its specific div - except the field that is questioned -->
+        <div style="display: flex; margin-top: 5px;">
+          {% for dpt_field in static_lists_dic['dpt_fields_dic'].keys() %}
+          {% if dpt_field != updated_data_for_ui['dpt_field_question'] %}
+          <div id="{{ dpt_field }}-score" class="field-score">
+            {{ static_lists_dic['dpt_fields_dic'][dpt_field].split(' ')[0] }}<br>
+            <span class="current-score">{{ updated_data_for_ui['scores'][dpt_field] }}</span>
+            /
+            <span class="total-answers">{{ updated_data_for_ui['total_answers'] }}</span>
+          </div>
+          {% endif %}
+          {% endfor %}
+          <!-- dynamically set the width of scores divs based on number of elements -->
+          <script>
+            let scoreEltsArray = document.getElementsByClassName('field-score')
+            i = 0
+            for (let scoreElt of scoreEltsArray) {
+              if (i < (scoreEltsArray.length - 1)) {
+                scoreElt.style.width = Math.round(100 / scoreEltsArray.length).toString() + "%"
+              } else {
+                scoreElt.style.flexGrow = "1"
+              }
+              i += 1
+            }
+          </script>
+        </div>
+      </div>
+
+      <!-- if training is not completed, ask question -->
+      {% if updated_data_for_ui['training_is_finished'] == false %}
+
+      <!-- Question -->
+      <div style="margin-top: 50px; margin-bottom: 15px; display: flex;">
+        <div class="field-name"> {{ static_lists_dic['dpt_fields_dic'][updated_data_for_ui["dpt_field_question"]] }}:
+        </div>
+        <div class="field-value question" style="color: dodgerblue;">{{ updated_data_for_ui["question"] }}</div>
+      </div>
+
+
+      <!-- Form to submit answers -->
+      <form autocomplete="off" action="{{ static_lists_dic['base_url'] }}/training" method="post">
+
+        {% for dpt_field in static_lists_dic['dpt_fields_dic'].keys() %}
+        {% if dpt_field != updated_data_for_ui['dpt_field_question'] %}
+        <div style="display: flex; align-items: center;">
+          <div class="field-name"> {{ static_lists_dic['dpt_fields_dic'][dpt_field] }}:</div>
+          <div class="autocomplete field-value">
+            <input id="{{ dpt_field }}-input" type="text" name="{{ dpt_field }}-input"
+              placeholder="{{ static_lists_dic['dpt_fields_dic'][dpt_field] }}">
+          </div>
+          <script>
+            autocomplete(document.getElementById("{{ dpt_field }}-input"), JSON.parse('{{static_lists_dic[dpt_field] | tojson | safe}}'));
+          </script>
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        <!-- placeholder div to display response after submision (see js code) -->
+        <div id="display-answers"></div>
+
+        <!--  -->
+        <div class="button-container">
+          <input id="next-button" style="width: 150px" type="submit" value="Suivant" hidden="true">
+        </div>
+      </form>
+
+      <!-- button to submit answers -->
+      <div class="button-container">
+        <button id="validation-button" style="width: 150px">Valider</button>
+        <script>
+          dpt_fields = JSON.parse('{{ static_lists_dic["dpt_fields_dic"].keys() | list | tojson | safe }}')
+          dpt_row = JSON.parse('{{ updated_data_for_ui["dpt_row"] | tojson | safe }}')
+          dpt_field_question = '{{ updated_data_for_ui["dpt_field_question"] }}'
+          training_start_time = '{{ updated_data_for_ui["training_start_time"] }}'
+          base_url = '{{ static_lists_dic["base_url"] }}'
+          submissionLogic(document.getElementById("validation-button"), dpt_fields, dpt_row, dpt_field_question, training_start_time, base_url)
+        </script>
+      </div>
+
+      {% else %}
+
+      <div style="text-align: center;">
+        <h4>Entraînement terminé, bien joué !</h3>
+      </div>
+
+      {% endif %}
+
+    </div>
+
+    {% set start_page_url = static_lists_dic['base_url'] %}
+    <input type="button" id="btn-back" style="margin-top: 40px;" onclick="location.href='{{ start_page_url }}';" value="Retour au menu" />
+
+  </div>
+  </div>
+
+</body>
+
+</html>
